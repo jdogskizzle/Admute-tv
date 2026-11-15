@@ -20,3 +20,10 @@ jobs:
         run: |
           xcodebuild -project AdmuteTV.xcodeproj -scheme AdmuteTV -configuration Debug \
             -destination 'generic/platform=tvOS Simulator' CODE_SIGNING_ALLOWED=NO build
+      - name: Build Release for the simulator (checks the icons and the build number)
+        run: |
+          xcodebuild -project AdmuteTV.xcodeproj -scheme AdmuteTV -configuration Release \
+            -destination 'generic/platform=tvOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO build
+          app=build/Build/Products/Release-appletvsimulator/AdmuteTV.app
+          echo "build number: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleVersion' $app/Info.plist)"
+          ls $app | grep -i -E 'assets.car|png'

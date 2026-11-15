@@ -10,8 +10,8 @@ settings:
   base:
     SWIFT_VERSION: "5.0"
     MARKETING_VERSION: "1.0"
-    CURRENT_PROJECT_VERSION: "1"
-    DEVELOPMENT_TEAM: ""          # your team, for running on a real Apple TV
+    CURRENT_PROJECT_VERSION: "1"  # Release builds replace it with the time (see the script below)
+    DEVELOPMENT_TEAM: ""          # your Team ID, for an Apple TV and TestFlight (GitHub uses its APPLE_TEAM_ID)
 targets:
   AdmuteTV:
     type: application
@@ -23,6 +23,18 @@ targets:
         PRODUCT_BUNDLE_IDENTIFIER: com.example.admute.tv
         INFOPLIST_KEY_CFBundleDisplayName: admute
         TARGETED_DEVICE_FAMILY: "3"
+        ASSETCATALOG_COMPILER_APPICON_NAME: "App Icon & Top Shelf Image"
+        ENABLE_USER_SCRIPT_SANDBOXING: NO   # the build-number script edits the built Info.plist
+    postBuildScripts:
+      # Every upload to TestFlight needs a higher build number than the last: Release builds
+      # (archives) take theirs from the time, e.g. 261115.2312, so nobody has to bump it.
+      - name: Set build number
+        basedOnDependencyAnalysis: false
+        inputFiles: ["$(TARGET_BUILD_DIR)/$(INFOPLIST_PATH)"]
+        script: |
+          if [ "$CONFIGURATION" = "Release" ]; then
+            /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $(date -u +%y%m%d.%H%M)" "$TARGET_BUILD_DIR/$INFOPLIST_PATH"
+          fi
     info:
       path: AdmuteTV/Info.plist
       properties:
@@ -30,6 +42,7 @@ targets:
         UILaunchScreen: {}
         UIUserInterfaceStyle: Dark
         UIRequiresFullScreen: true
+        ITSAppUsesNonExemptEncryption: false   # only Apple's own HTTPS: no export-compliance question per build
         # The studio is usually behind HTTPS, but a plain-HTTP address on the home network
         # (and channel logos from the guide, often plain HTTP) should still load.
         NSAppTransportSecurity:
