@@ -1,0 +1,36 @@
+# Xcode project for the Apple TV app. Generate it with XcodeGen (brew install xcodegen):
+#   xcodegen && open AdmuteTV.xcodeproj     (or: make open)
+name: AdmuteTV
+options:
+  bundleIdPrefix: com.example.admute
+  deploymentTarget:
+    tvOS: "17.0"
+  createIntermediateGroups: true
+settings:
+  base:
+    SWIFT_VERSION: "5.0"
+    MARKETING_VERSION: "1.0"
+    CURRENT_PROJECT_VERSION: "1"
+    DEVELOPMENT_TEAM: ""          # your team, for running on a real Apple TV
+targets:
+  AdmuteTV:
+    type: application
+    platform: tvOS
+    sources: [AdmuteTV]
+    scheme: {}
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.example.admute.tv
+        INFOPLIST_KEY_CFBundleDisplayName: admute
+        TARGETED_DEVICE_FAMILY: "3"
+    info:
+      path: AdmuteTV/Info.plist
+      properties:
+        CFBundleDisplayName: admute
+        UILaunchScreen: {}
+        UIUserInterfaceStyle: Dark
+        UIRequiresFullScreen: true
+        # The studio is usually behind HTTPS, but a plain-HTTP address on the home network
+        # (and channel logos from the guide, often plain HTTP) should still load.
+        NSAppTransportSecurity:
+          NSAllowsArbitraryLoads: true
