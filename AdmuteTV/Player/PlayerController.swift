@@ -314,8 +314,8 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
             items.append(UIMenu(title: "Catch up", image: UIImage(systemName: "backward.circle"), children: catchUp))
         }
         // only when they change: replacing them would close a menu the viewer has open
-        let signature = [[liveNum ?? run?.recap.name ?? ]]
-            + items.map { e in [e.title] + ((e as? UIMenu)?.children.map(\.title) ?? []) }
+        let mine: [[String]] = [[liveNum ?? run?.recap.name ?? ""]]
+        let signature = mine + items.map { e in [e.title] + ((e as? UIMenu)?.children.map(\.title) ?? []) }
         if signature != menuSignature {
             menuSignature = signature
             vc.transportBarCustomMenuItems = items
