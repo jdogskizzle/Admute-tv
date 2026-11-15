@@ -85,10 +85,10 @@ struct LiftStyle: ButtonStyle {
     var corner: CGFloat = 20
 
     func makeBody(configuration: Configuration) -> some View {
-        Body(configuration: configuration, corner: corner)
+        LiftBody(configuration: configuration, corner: corner)
     }
 
-    struct Body: View {
+    struct LiftBody: View {
         let configuration: Configuration
         let corner: CGFloat
         @Environment(\.isFocused) private var focused
