@@ -194,9 +194,9 @@ Builds expire after **90 days**: run the workflow again before then (TestFlight 
 - *"No suitable application records were found"*: the app isn't in App Store Connect yet,
   or its bundle ID differs from `BUNDLE_ID`.
 - *"The bundle version must be higher"*: two uploads in the same minute; run it again.
-- Each run can leave an "Apple Development: Created via API" certificate under Certificates,
-  IDs & Profiles > Certificates. If the list grows long, revoke the old ones: nothing
-  installed depends on them.
+- *"Your team has no devices from which to generate a provisioning profile"*: something
+  asked for a development profile; the workflow avoids that by signing only for the App
+  Store, at upload. Uploads from a Mac need the Apple TV paired in Xcode first.
 
 ## Signing in
 On first start it asks for the studio's address (the one you open it at in a browser, e.g.
