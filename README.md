@@ -38,7 +38,7 @@ is immediate.
 You need a Mac; tvOS apps can only be built with Xcode.
 
 ### 1. Install the tools (once)
-1. **Xcode 15 or later** from the Mac App Store (it includes the tvOS SDK). Open it once,
+1. **Xcode 26 or later** from the Mac App Store (it includes the tvOS SDK). Open it once,
    accept the licence and let it install its components. If it asks which platforms to
    download, tick **tvOS** (or later: Xcode > Settings > Components > tvOS).
 2. Point the command-line tools at it:
@@ -193,6 +193,8 @@ Builds expire after **90 days**: run the workflow again before then (TestFlight 
   **Admin**. Make a new one with Admin access and replace the secrets.
 - *"No suitable application records were found"*: the app isn't in App Store Connect yet,
   or its bundle ID differs from `BUNDLE_ID`.
+- *"SDK version issue … must be built with the tvOS 26 SDK"*: Apple wants the newest Xcode;
+  the workflow picks it (`latest-stable`), and on a Mac update Xcode from the App Store.
 - *"The bundle version must be higher"*: two uploads in the same minute; run it again.
 - *"Your team has no devices from which to generate a provisioning profile"*: something
   asked for a development profile; the workflow avoids that by signing only for the App
