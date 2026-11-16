@@ -17,6 +17,9 @@ struct RootView: View {
                     RecapsView().tabItem { Label("Recaps", systemImage: "sportscourt") }
                     SettingsView().tabItem { Label("Settings", systemImage: "gearshape") }
                 }
+                .fullScreenCover(item: $model.multi) { c in
+                    MultiView(controller: c).environmentObject(model)
+                }
             }
         }
         .task { await model.start() }

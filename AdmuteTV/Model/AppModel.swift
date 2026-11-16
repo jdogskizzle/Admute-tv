@@ -18,6 +18,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var tuners: Int?      // nil: the proxy doesn't know (TUNER_COUNT unset)
     @Published private(set) var problem: String?   // the studio is up but the proxy isn't, etc.
     @Published private(set) var now: Date = .now   // ticks, for progress bars
+    @Published var multi: MultiController?          // the multi-view, while it's open
 
     private(set) var api: API?
     private var loop: Task<Void, Never>?
@@ -121,6 +122,22 @@ final class AppModel: ObservableObject {
     /// The channel showing a recap's game now, if it's still on.
     func channel(for recap: Recap) -> Channel? {
         channels.first { recap.matches($0.now) }
+    }
+
+    // MARK: - multi-view
+
+    /// One spot per tuner (2 when the proxy can't tell).
+    var multiCount: Int { min(6, max(2, tuners ?? 2)) }
+
+    /// Opens the multi-view; `main` (the channel being watched, say) becomes its main channel.
+    func startMulti(main: String?) {
+        var s = MultiController.saved
+        while s.count < multiCount { s.append(nil) }
+        if let main {
+            if let j = s.firstIndex(of: main) { s.swapAt(0, j) } else { s[0] = main }
+        }
+        MultiController.saved = s
+        multi = MultiController(model: self, count: multiCount)
     }
 
     func neighbour(of num: String, by step: Int) -> Channel? {

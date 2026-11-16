@@ -324,6 +324,14 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
             catchUp.append(UIAction(title: "All highlights · \(runtime(all))") { [weak self] _ in self?.startRecap(rec, level: 2) })
             items.append(UIMenu(title: "Catch up", image: UIImage(systemName: "backward.circle"), children: catchUp))
         }
+        if let n = liveNum {
+            // this channel becomes the multi-view's main one, and keeps its tuner (no retuning wait)
+            items.append(UIAction(title: "Multi-view", image: UIImage(systemName: "rectangle.split.2x2")) { [weak self] _ in
+                guard let self else { return }
+                let model = self.model
+                self.close { model.startMulti(main: n) }
+            })
+        }
         // only when they change: replacing them would close a menu the viewer has open
         let mine: [[String]] = [[liveNum ?? run?.recap.name ?? ""]]
         let signature = mine + items.map { e in [e.title] + ((e as? UIMenu)?.children.map(\.title) ?? []) }
@@ -375,8 +383,11 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
 
     // MARK: - leaving
 
-    func close() {
-        vc.dismiss(animated: true) { [weak self] in self?.teardown() }
+    func close(then: (() -> Void)? = nil) {
+        vc.dismiss(animated: true) { [weak self] in
+            self?.teardown()
+            then?()
+        }
     }
 
     nonisolated func playerViewControllerDidEndDismissalTransition(_ playerViewController: AVPlayerViewController) {

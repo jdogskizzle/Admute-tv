@@ -10,13 +10,19 @@ studio over the API the web Watch tab uses, so there's nothing to change on the 
   whether an ad is being muted on it now. Click a channel to watch it. Move right to
   **Catch up** when its game has a recap.
 - **Multi-view**: one channel per tuner at once (the studio's `TUNER_COUNT`, or the
-  HDHomeRun's own count). Pick a main channel and side channels, then start. The main
-  channel is big and has the sound; when it goes to a commercial break of 15 seconds or more,
-  the sound and the big spot move to a side channel that isn't in a break, and come back the
-  moment the main channel's break ends. Side channels in a break are hidden (still loading,
-  so they come back at once), with a countdown when the break's end is known. Click a channel
-  to make it the main one, change it or remove it; Menu leaves. Side channels play at 720p to
-  save bandwidth, the big one at full quality.
+  HDHomeRun's own count). Pick a main channel and side channels and start, or start it from a
+  channel you're watching (**Multi-view** in the player's controls or in the guide; that
+  channel becomes the main one and keeps playing without a new wait). The main channel is big
+  and has the sound; when it goes to a commercial break of 15 seconds or more, the sound and
+  the big spot move to a side channel that isn't in a break, and come back the moment the
+  main channel's break ends. Side channels in a break are hidden (still loading, so they come
+  back at once). Two layouts: **side by side** (the big channel on the left, the others in a
+  column on the right, edge to edge) or **picture in picture** (the big one full screen, the
+  others small in the corner). Move with the remote to select a channel; its name and a
+  break countdown show on it, and fade with the outline a few seconds after the remote is
+  put down. Click it to make it the main one, change it, remove it, add a channel while a
+  tuner is free (also an **Add channel** spot), or switch layout. Menu leaves. Side channels
+  play at 720p to save bandwidth, the big one at full quality.
 - **Recaps**: every game's recap, newest first, with *Scores & turnovers* and *All
   highlights*. A live game shows which channel it's on.
 - **Settings**: the studio, the delay, sign out, and a short guide to the remote.

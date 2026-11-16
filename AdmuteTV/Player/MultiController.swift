@@ -54,6 +54,8 @@ final class MultiController: ObservableObject, Identifiable {
     }
 
     var main: Tile? { tiles.first }
+    /// A side spot with no channel (a tuner to spare).
+    var freeTile: Tile? { tiles.dropFirst().first { $0.num == nil } }
     private var keep: [String] { tiles.compactMap(\.num) }
 
     // MARK: - choosing channels

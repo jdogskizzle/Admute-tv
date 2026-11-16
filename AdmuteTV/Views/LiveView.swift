@@ -108,6 +108,9 @@ struct LiveView: View {
     private func actions(_ ch: Channel) -> some View {
         HStack(spacing: 30) {
             Button { watch(ch.num) } label: { Label("Watch live", systemImage: "play.fill") }
+            Button { lastChannel = ch.num; model.startMulti(main: ch.num) } label: {
+                Label("Multi-view", systemImage: "rectangle.split.2x2")
+            }
             if let r = model.recap(for: ch) {
                 let key = r.clips(level: 1), all = r.clips(level: 2)
                 if !key.isEmpty {
