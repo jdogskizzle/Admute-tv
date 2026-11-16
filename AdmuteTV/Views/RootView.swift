@@ -13,6 +13,7 @@ struct RootView: View {
             case .ready:
                 TabView {
                     LiveView().tabItem { Label("Live TV", systemImage: "tv") }
+                    MultiSetupView().tabItem { Label("Multi-view", systemImage: "rectangle.split.2x2") }
                     RecapsView().tabItem { Label("Recaps", systemImage: "sportscourt") }
                     SettingsView().tabItem { Label("Settings", systemImage: "gearshape") }
                 }

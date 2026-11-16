@@ -9,6 +9,14 @@ studio over the API the web Watch tab uses, so there's nothing to change on the 
   focus fills the right side: title, episode, time left, description, what's next, and
   whether an ad is being muted on it now. Click a channel to watch it. Move right to
   **Catch up** when its game has a recap.
+- **Multi-view**: one channel per tuner at once (the studio's `TUNER_COUNT`, or the
+  HDHomeRun's own count). Pick a main channel and side channels, then start. The main
+  channel is big and has the sound; when it goes to a commercial break of 15 seconds or more,
+  the sound and the big spot move to a side channel that isn't in a break, and come back the
+  moment the main channel's break ends. Side channels in a break are hidden (still loading,
+  so they come back at once), with a countdown when the break's end is known. Click a channel
+  to make it the main one, change it or remove it; Menu leaves. Side channels play at 720p to
+  save bandwidth, the big one at full quality.
 - **Recaps**: every game's recap, newest first, with *Scores & turnovers* and *All
   highlights*. A live game shows which channel it's on.
 - **Settings**: the studio, the delay, sign out, and a short guide to the remote.
@@ -20,7 +28,8 @@ pause, Menu back to the guide, swipe down for the info panel. Added to it:
 - **Channels** tab in the info panel: change channel without leaving the player.
 - **Catch up** in the transport bar when the game on this channel has a recap.
 - A "Tuning…" card while the studio builds up the delay, and **Ad muted** in the corner during
-  a muted break (timed to when the picture gets there, not when the proxy mutes it).
+  a break, exactly when the picture gets there (the studio stamps each piece of the stream
+  with the time, and reports breaks in the same clock).
 - A TV remote's **channel up/down** buttons (through HDMI-CEC) change channel.
 - **Captions**: the broadcast's closed captions, if the player finds them in the stream
   (swipe down, Subtitles).
@@ -217,8 +226,11 @@ the studio and the guide's channel logos are often on the home network.
 |---|---|
 | `GET api/channels` | channels, now/next from the guide, and whether each is muting an ad |
 | `GET api/watch/<num>/live.m3u8` | the channel as HLS (two versions, 1080p/720p and 720p 5 Mb/s) |
+| `GET api/watch/<num>/live.m3u8?keep=<a,b>` | the same, leaving the multi-view's other channels running |
+| `GET api/breaks` | each open channel's ad breaks, as clock times when viewers reach them |
 | `GET api/recaps`, `GET api/recap/<name>/<clip>.mp4` | recaps and their clips |
 | `POST login` | sign in (form fields `username`, `password`); the session cookie comes back with the 303 |
 
-As with the web player, one channel plays at a time and the studio lets the tuner go 20
+Multi-view needs the studio from admute's "Multi-view" update; everything else works with
+older ones. As with the web player, the single player plays one channel at a time and the studio lets the tuner go 20
 seconds after the player closes.

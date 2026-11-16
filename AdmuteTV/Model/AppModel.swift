@@ -15,6 +15,7 @@ final class AppModel: ObservableObject {
     @Published private(set) var channels: [Channel] = []
     @Published private(set) var recaps: [Recap] = []
     @Published private(set) var delay: Double = 30
+    @Published private(set) var tuners: Int?      // nil: the proxy doesn't know (TUNER_COUNT unset)
     @Published private(set) var problem: String?   // the studio is up but the proxy isn't, etc.
     @Published private(set) var now: Date = .now   // ticks, for progress bars
 
@@ -85,6 +86,7 @@ final class AppModel: ObservableObject {
         let list = try await api.channels()
         channels = list.channels ?? []
         delay = list.delaySeconds ?? delay
+        tuners = list.tuners ?? tuners
         if list.configured == false {
             problem = "The studio has no LIVE_URL set, so it can't show live TV."
         } else if let e = list.error {

@@ -53,6 +53,7 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
     private var warm: Task<Void, Never>?
     private var subs: Set<AnyCancellable> = []
     private var samples: [(at: Date, muted: Bool)] = []
+    private var liveBreaks: ChannelBreaks?
     private var lastLive: String?
     private var shownProgram: String?
     private var overlay: OverlayHost?
@@ -132,6 +133,7 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
         failure = nil
         card = nil
         samples = []
+        liveBreaks = nil
         adBreak = false
         let ch = model.channel(num)
         tuning = "Tuning \(num) \(ch?.name ?? "")…"
@@ -170,6 +172,9 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
                 guard let self, self.liveNum == num else { return }
                 self.samples.append((.now, self.model.channel(num)?.isMuted ?? false))
                 self.samples.removeAll { $0.at < Date.now.addingTimeInterval(-60) }
+                if let api = self.model.api, let b = try? await api.breaks(), self.liveNum == num {
+                    self.liveBreaks = b.channels?[num]
+                }
                 try? await Task.sleep(for: .seconds(4))
             }
         }
@@ -272,8 +277,14 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
                 card = nil
             }
         } else if liveNum != nil {
-            let then = Date.now.addingTimeInterval(-behind)
-            adBreak = samples.last(where: { $0.at <= then })?.muted ?? false
+            if let b = liveBreaks, let now = player.currentItem?.currentDate() {
+                // the studio stamps each piece with when the proxy sent it: exact
+                adBreak = b.at(now.timeIntervalSince1970) != nil
+            } else {
+                // an older studio: the proxy's mute state, shifted by about how far behind we are
+                let then = Date.now.addingTimeInterval(-behind)
+                adBreak = samples.last(where: { $0.at <= then })?.muted ?? false
+            }
         }
     }
 

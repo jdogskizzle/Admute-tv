@@ -61,12 +61,40 @@ struct ChannelList: Decodable {
     let configured: Bool?
     let channels: [Channel]?
     let delaySeconds: Double?
+    let tuners: Int?        // how many channels can be open at once (nil when the proxy can't tell)
     let error: String?
 
     enum CodingKeys: String, CodingKey {
-        case configured, channels, error
+        case configured, channels, error, tuners
         case delaySeconds = "delay_seconds"
     }
+}
+
+/// A channel's recent ad breaks (not sponsor lines), as clock times when viewers reach them.
+/// An unfinished break has no end yet; it has lasted at least until `knownUntil`.
+struct ChannelBreaks: Decodable {
+    let breaks: [[Double?]]
+    let knownUntil: Double?
+
+    enum CodingKeys: String, CodingKey {
+        case breaks
+        case knownUntil = "known_until"
+    }
+
+    /// The break at clock time `t` that has lasted at least `minLength` seconds, if any.
+    func at(_ t: Double, minLength: Double = 0) -> (start: Double, end: Double?)? {
+        for b in breaks {
+            guard let start = b.first ?? nil else { continue }
+            let end = b.count > 1 ? b[1] : nil
+            let inside = t >= start && (end.map { t < $0 } ?? true)
+            if inside && ((end ?? knownUntil ?? t) - start) >= minLength { return (start, end) }
+        }
+        return nil
+    }
+}
+
+struct BreakList: Decodable {
+    let channels: [String: ChannelBreaks]?
 }
 
 struct RecapClip: Decodable, Identifiable, Hashable {
@@ -185,7 +213,16 @@ final class API {
         return s.addingPercentEncoding(withAllowedCharacters: allowed) ?? s
     }
 
-    func liveURL(_ num: String) -> URL { url("api/watch/\(Self.seg(num))/live.m3u8") }
+    /// keep: the other channels to leave running (the multi-view's); nil stops every other one.
+    func liveURL(_ num: String, keep: [String]? = nil) -> URL {
+        var path = "api/watch/\(Self.seg(num))/live.m3u8"
+        if let keep {
+            var allowed = CharacterSet.urlQueryAllowed
+            allowed.remove(charactersIn: "&=+")
+            path += "?keep=" + (keep.joined(separator: ",").addingPercentEncoding(withAllowedCharacters: allowed) ?? "")
+        }
+        return url(path)
+    }
     func clipURL(_ recap: String, _ file: String) -> URL { url("api/recap/\(Self.seg(recap))/\(Self.seg(file))") }
 
     /// The session cookie for AVPlayer (AVURLAssetHTTPCookiesKey): it sends these with the
@@ -218,6 +255,7 @@ final class API {
 
     func channels() async throws -> ChannelList { try await get("api/channels") }
     func recaps() async throws -> [Recap] { try await get("api/recaps") }
+    func breaks() async throws -> BreakList { try await get("api/breaks", timeout: 5) }
 
     /// Asks for a channel's playlist without playing it, so the studio keeps converting it
     /// (it stops 20 s after the last request). Used while a recap plays, so going back to
