@@ -148,7 +148,7 @@ final class MultiController: ObservableObject, Identifiable {
     }
 
     /// The channels hidden during their breaks, for the note at the bottom.
-    var hidden: [String] { tiles.filter { $0.num != nil && !shown.contains(where: { s in s === $0 }) }.compactMap(\.num) }
+    var hidden: [String] { tiles.filter { t in t.num != nil && !shown.contains { $0 === t } }.compactMap(\.num) }
 
     /// Lets the tuners go: the studio stops converting 20 s after the last request.
     func stop() {
