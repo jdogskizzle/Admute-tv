@@ -21,7 +21,9 @@ studio over the API the web Watch tab uses, so there's nothing to change on the 
   others small in the corner). Move with the remote to select a channel; its name and a
   break countdown show on it, and fade with the outline a few seconds after the remote is
   put down. Click it to make it the main one, change it, remove it, add a channel while a
-  tuner is free (also an **Add channel** spot), or switch layout. Menu leaves. Side channels
+  tuner is free (also an **Add channel** spot), or switch layout. Removing the last side
+  channel goes back to the normal player on the main channel, without a break in the
+  picture or sound. Menu leaves. Side channels
   play at 720p to save bandwidth, the big one at full quality.
 - **Recaps**: every game's recap, newest first, with *Scores & turnovers* and *All
   highlights*. A live game shows which channel it's on.

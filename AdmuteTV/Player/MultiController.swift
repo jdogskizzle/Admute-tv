@@ -68,6 +68,11 @@ final class MultiController: ObservableObject, Identifiable {
         load(tile)
         save()
         decide()
+        // the last side channel removed: back to the main one on its own, in the normal player
+        if num == nil, tile !== main, let m = main, let n = m.num, !m.failed,
+           !tiles.dropFirst().contains(where: { $0.num != nil }) {
+            Watch.handoff(from: self, keeping: m, num: n, model: model)
+        }
     }
 
     func makeMain(_ tile: Tile) {
@@ -151,6 +156,16 @@ final class MultiController: ObservableObject, Identifiable {
 
     /// The channels hidden during their breaks, for the note at the bottom.
     var hidden: [String] { tiles.filter { t in t.num != nil && !shown.contains { $0 === t } }.compactMap(\.num) }
+
+    /// Stops everything but `tile`, which the single player takes over.
+    func release(keeping tile: Tile) {
+        stopped = true
+        loops.forEach { $0.cancel() }
+        for t in tiles where t !== tile {
+            t.player.pause()
+            t.player.replaceCurrentItem(with: nil)
+        }
+    }
 
     /// Lets the tuners go: the studio stops converting 20 s after the last request.
     func stop() {

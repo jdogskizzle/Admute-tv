@@ -42,7 +42,7 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
     @Published private(set) var adBreak = false
     @Published private(set) var seen: Set<String> = []   // recap plays already shown
 
-    let player = AVPlayer()
+    let player: AVPlayer
     let model: AppModel
     private let vc = AVPlayerViewController()
     private var itemObservers: [NSKeyValueObservation] = []
@@ -66,8 +66,10 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
     var liveNum: String? { if case .live(let n) = mode { return n }; return nil }
     var run: Run? { if case .recap(let r) = mode { return r }; return nil }
 
-    init(model: AppModel) {
+    /// player: one already playing, when the multi-view hands its main channel over.
+    init(model: AppModel, player: AVPlayer = AVPlayer()) {
         self.model = model
+        self.player = player
         super.init()
         vc.player = player
         vc.delegate = self
@@ -116,11 +118,34 @@ final class PlayerController: NSObject, ObservableObject, AVPlayerViewController
             .store(in: &subs)
     }
 
-    func present() {
-        let scene = UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }.first
-        var top = scene?.windows.first { $0.isKeyWindow }?.rootViewController
+    func present(animated: Bool = true, completion: (() -> Void)? = nil) {
+        var top = Watch.window?.rootViewController
         while let p = top?.presentedViewController { top = p }
-        top?.present(vc, animated: true)
+        top?.present(vc, animated: animated, completion: completion)
+    }
+
+    /// Takes over a channel that's already playing (the multi-view's main one): no retuning.
+    func adoptLive(_ num: String) {
+        mode = .live(num)
+        lastLive = num
+        failure = nil
+        tuning = nil
+        card = nil
+        samples = []
+        liveBreaks = nil
+        adBreak = false
+        player.isMuted = false
+        let ch = model.channel(num)
+        shownProgram = ch?.now?.title
+        if let item = player.currentItem {
+            item.preferredMaximumResolution = .zero
+            item.externalMetadata = Self.metadata(ch)
+            observe(item) { [weak self] in
+                self?.failure = "\(num) stopped. Every tuner may be busy; pick it again in Channels to retry."
+            }
+        }
+        startPolling(num)
+        updateChrome()
     }
 
     // MARK: - live
@@ -440,6 +465,37 @@ enum Watch {
         controller(model).startRecap(recap, level: level)
     }
 
+    static var window: UIWindow? {
+        UIApplication.shared.connectedScenes.compactMap { $0 as? UIWindowScene }
+            .flatMap(\.windows).first { $0.isKeyWindow }
+    }
+
+    /// Leaves the multi-view for the single player, keeping `tile` playing throughout: its
+    /// picture is held over the whole screen while the multi-view closes underneath and the
+    /// player opens on the same AVPlayer, then fades away. Sound never stops.
+    static func handoff(from multi: MultiController, keeping tile: Tile, num: String, model: AppModel) {
+        guard current == nil, let window else { return }
+        let cover = HoldingView(player: tile.player)
+        cover.frame = window.bounds
+        window.addSubview(cover)
+        multi.release(keeping: tile)
+        var t = Transaction()
+        t.disablesAnimations = true
+        withTransaction(t) { model.multi = nil }
+        let c = PlayerController(model: model, player: tile.player)
+        current = c
+        c.adoptLive(num)
+        Task { @MainActor in
+            for _ in 0..<60 where window.rootViewController?.presentedViewController != nil {
+                try? await Task.sleep(for: .milliseconds(50))   // the multi-view going
+            }
+            c.present(animated: false) {
+                window.bringSubviewToFront(cover)
+                UIView.animate(withDuration: 0.25, animations: { cover.alpha = 0 }) { _ in cover.removeFromSuperview() }
+            }
+        }
+    }
+
     private static func controller(_ model: AppModel) -> PlayerController {
         if let c = current { return c }
         let c = PlayerController(model: model)
@@ -447,4 +503,20 @@ enum Watch {
         c.present()
         return c
     }
+}
+
+/// A full-screen picture of a player, over everything, for the hand-over above.
+final class HoldingView: UIView {
+    override class var layerClass: AnyClass { AVPlayerLayer.self }
+
+    init(player: AVPlayer) {
+        super.init(frame: .zero)
+        backgroundColor = .black
+        let l = layer as! AVPlayerLayer
+        l.videoGravity = .resizeAspect
+        l.player = player
+        isUserInteractionEnabled = false
+    }
+
+    required init?(coder: NSCoder) { nil }
 }
